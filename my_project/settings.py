@@ -20,9 +20,11 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_yasg',
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 LOCAL_APPS = [
+    'account',
 ]
 
 DJANGO_APPS = [
@@ -148,3 +150,6 @@ SWAGGER_SETTINGS = {
         }
     ]
 }
+
+# User Model
+AUTH_USER_MODEL = "account.User"
