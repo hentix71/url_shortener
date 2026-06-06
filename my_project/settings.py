@@ -25,6 +25,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'account',
+    'url',
 ]
 
 DJANGO_APPS = [
@@ -124,7 +125,7 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
-    'EXCEPTION_HANDLER': 'my_project.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'my_project.utils.exceptions.custom_exception_handler',
 }
 
 # JWT Authentication settings
@@ -153,3 +154,14 @@ SWAGGER_SETTINGS = {
 
 # User Model
 AUTH_USER_MODEL = "account.User"
+
+# Redis Cache Configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config('LOCATION'),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}

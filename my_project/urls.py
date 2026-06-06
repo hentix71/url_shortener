@@ -33,4 +33,5 @@ urlpatterns = [
 
     # Local App URLs
     path('api/account/', include('account.urls')),
+    path('api/url/', include('url.urls')),
 ]
