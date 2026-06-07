@@ -15,7 +15,13 @@ def get_next_id():
 def cache_short_url(short_code, original_url, timeout=1800):
     # Cache the short URL with a timeout (default: 30 minutes)
     
-    cache.set(short_code, original_url, timeout)
+    cache.set(
+        "short_code:{short_code}",
+        {
+            "original_url": original_url,
+            "expiry": expire_time
+        },
+    )
 
 
 def get_cached_short_url(short_code):
@@ -26,10 +32,11 @@ def get_cached_short_url(short_code):
 
 def increment_click_count(short_code):
     # Increment the click count for the given short code
-
+    
     count_key = f"clicks:{short_code}"
 
     try:
-        cache.incr(count_key)
+        return cache.incr(count_key)
     except ValueError:
         cache.set(count_key, 1)
+        return 1
