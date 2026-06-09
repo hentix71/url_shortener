@@ -32,6 +32,9 @@ class ShortURL(models.Model):
         auto_now_add=True
     )
 
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
 
     life_time = models.CharField(
         max_length=10,

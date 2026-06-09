@@ -1,5 +1,6 @@
 from django.core.cache import cache
-
+import redis
+from decouple import config
 
 ID_KEY = "url:id:counter"
 def get_next_id():
@@ -14,20 +15,21 @@ def get_next_id():
 
 def cache_short_url(short_code, original_url, timeout=1800):
     # Cache the short URL with a timeout (default: 30 minutes)
-    
+    key = f"short_code:{short_code}"
     cache.set(
-        "short_code:{short_code}",
+        key,
         {
-            "original_url": original_url,
-            "expiry": expire_time
+            "original_url": original_url
         },
+        timeout=timeout
     )
 
 
 def get_cached_short_url(short_code):
     # Retrieve the original URL from the cache using the short code
     
-    return cache.get(short_code)
+    key = f"short_code:{short_code}"
+    return cache.get(key)
 
 
 def increment_click_count(short_code):
@@ -35,8 +37,12 @@ def increment_click_count(short_code):
     
     count_key = f"clicks:{short_code}"
 
-    try:
-        return cache.incr(count_key)
-    except ValueError:
-        cache.set(count_key, 1)
-        return 1
+    cache.add(count_key, 0)  # Initialize to 0 if not exists
+    return cache.incr(count_key)
+
+redis_client = redis.Redis(
+    host=config('REDIS_HOST'),
+    port=config('REDIS_PORT', cast=int),
+    db=config('REDIS_DB', default=1, cast=int),
+    decode_responses=True    
+)
