@@ -1,19 +1,113 @@
 services:
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+
   postgres:
     image: postgres:17
-
     container_name: url_shortener_postgres
-    
+    restart: always
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-
     ports:
       - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  # -------------------------
+  # MIGRATION SERVICE (IMPORTANT)
+  # -------------------------
+  migrate:
+    build: .
+    env_file:
+      - .env
+    command: python manage.py migrate
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+  django:
+    build: .
+    container_name: url_shortener_django
+    env_file:
+      - .env
+    command: gunicorn my_project.wsgi:application --bind 0.0.0.0:8000 --worker-tmp-dir /tmp
+    ports:
+      - "8000:8000"
+    restart: always
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+
+
+  worker:
+    build: .
+    container_name: url_shortener_worker
+    env_file:
+      - .env
+    command: celery -A my_project worker -l info --concurrency=4
+    restart: always
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+
+
+  beat:
+    build: .
+    container_name: url_shortener_beat
+    env_file:
+      - .env
+    command: celery -A my_project beat -l info
+    restart: always
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+
 
 volumes:
   postgres_data:

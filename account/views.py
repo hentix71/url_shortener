@@ -13,8 +13,8 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 
-from my_project.utils import api_response
-from my_project.custom_permissions import IsOwner
+from my_project.utils.custom_response import api_response
+from my_project.utils.custom_permissions import IsOwner
 from .serializers import *
 from .models import User
 
