@@ -69,6 +69,7 @@ dist/
 
 # Docker Compose override (local-only)
 docker-compose.override.yml
+.dockerignore
 
 # =========================
 # OS Files
