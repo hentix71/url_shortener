@@ -37,12 +37,5 @@ def increment_click_count(short_code):
     
     count_key = f"clicks:{short_code}"
 
-    cache.add(count_key, 0)  # Initialize to 0 if not exists
+    cache.add(count_key, 0)  
     return cache.incr(count_key)
-
-redis_client = redis.Redis(
-    host=config('REDIS_HOST'),
-    port=config('REDIS_PORT', cast=int),
-    db=config('REDIS_DB', default=1, cast=int),
-    decode_responses=True    
-)

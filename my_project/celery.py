@@ -15,7 +15,13 @@ app.config_from_object(
 
 app.autodiscover_tasks()
 
-# for django-celery-beat
 app.conf.beat_scheduler = (
     "django_celery_beat.schedulers:DatabaseScheduler"
 )
+
+app.conf.beat_schedule = {
+    "sync-click-counts-every-60-seconds": {
+        "task": "url.tasks.sync_click_counts",
+        "schedule": 60.0,
+    },
+}
