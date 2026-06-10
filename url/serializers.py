@@ -44,7 +44,7 @@ class UpdateURLSerializer(serializers.ModelSerializer):
         return instance
 
 class ListURLSerializer(serializers.ModelSerializer):
-    click_count = serializers.IntegerField()
+    click_count = serializers.SerializerMethodField()
     class Meta:
         model = ShortURL
         fields = ['id', 'original_url', 'short_code', 'created_at', 'expires_at', 'click_count']

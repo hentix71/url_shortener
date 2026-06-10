@@ -52,10 +52,13 @@ class RedirectURLAPIView(RetrieveAPIView):
                     )
                 # Calculating the expiry time and Cacheing the short URL for future requests
                 print(instance.expires_at, timezone.now())
-                remaining_time = max(
-                    int((instance.expires_at - timezone.now()).total_seconds()),
-                    1
-                )
+                if instance.expires_at:
+                    remaining_time = max(
+                        int((instance.expires_at - timezone.now()).total_seconds()),
+                        1
+                    )
+                else:
+                    remaining_time = 1800  # default 30 minutes
 
                 redis_service.cache_short_url(
                     instance.short_code, 
@@ -174,25 +177,27 @@ class UpdateURLAPIView(UpdateAPIView):
 class ListUserURLsAPIView(ListAPIView):
     permission_classes = [IsAuthenticated, IsOwner]
     serializer_class = ListURLSerializer
-    queryset = ShortURL.objects.all()
     pagination_class = CustomCursorPagination
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['created_at', 'expires_at']
     search_fields = ['original_url', 'short_code']
 
+    def get_queryset(self):
+        return ShortURL.objects.filter(user=self.request.user, is_active=True)
+
     @swagger_auto_schema(tags=["URL Management"])    
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         try:
-            return super().get(request)
+            return super().get(request, *args, **kwargs)
         except Exception as e:
             return api_response(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 is_success=False,
-                message="Error occurred while retrieving user URLs.",
+                message="Error occurred while retrieving URLs.",
                 result=[str(e)]
             )
-
+        
 class ShortenURLAPIView(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ShortenURLSerializer
