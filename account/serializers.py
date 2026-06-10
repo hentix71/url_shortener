@@ -59,9 +59,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         
         if errors:
             print("Errors found in validation:")
-            for i in errors:
-                
-                raise serializers.ValidationError(errors)
+            raise serializers.ValidationError(errors)
         return attrs
 
     def create(self, validated_data):

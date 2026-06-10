@@ -12,13 +12,11 @@ def sync_click_counts():
     for key in redis_client.scan_iter("clicks:*"):
         short_code = key.split(":",1 )[1]
 
-        click_count = redis_client.get(key)
-        if not click_count:
-            continue
-
+        click_count = int(redis_client.get(key) or 0)
+        
         if click_count <= 0:
             continue
-        click_count = int(click_count)
+        
         ShortURL.objects.filter(
             short_code=short_code
             ).update(

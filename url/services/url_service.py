@@ -20,7 +20,7 @@ def create_short_url(user, validated_data):
             prefix = random_prefix(2)
             short_code = f"{prefix}{base}"
 
-            if not ShortURL.objects.filter(short_code=short_code, is_active=True).exists():
+            if not ShortURL.objects.filter(short_code=short_code).exists():
                 break
     
     expires_at = calculate_expiry(life_time)
